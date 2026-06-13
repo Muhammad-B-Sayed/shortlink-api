@@ -35,8 +35,6 @@ def test_guest_dashboard_displays_link_limit_message():
         "permanent links, and activate/deactivate controls."
     ) in guest_dashboard_source
     assert "Guest accounts can create up to 10 links. Sign in for unlimited links." in guest_dashboard_source
-
-
 def test_frontend_routes_render_without_global_boot_gate():
     app_path = Path(__file__).resolve().parent.parent / "frontend" / "src" / "App.tsx"
 
