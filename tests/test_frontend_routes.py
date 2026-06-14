@@ -15,6 +15,25 @@ def test_guest_spa_route_rewrite_precedes_short_code_rewrite():
     assert guest_nested_index < short_code_index
 
 
+def test_short_code_rewrite_targets_current_render_backend():
+    vercel_config_path = Path(__file__).resolve().parent.parent / "frontend" / "vercel.json"
+    vercel_config = json.loads(vercel_config_path.read_text())
+    short_code_rewrite = next(
+        rewrite for rewrite in vercel_config["rewrites"] if rewrite["source"] == "/:shortCode"
+    )
+
+    assert short_code_rewrite["destination"] == "https://shortlink-c8sm.onrender.com/:shortCode"
+
+
+def test_frontend_api_config_supports_local_network_hosts():
+    config_path = Path(__file__).resolve().parent.parent / "frontend" / "src" / "api" / "config.ts"
+    config_source = config_path.read_text()
+
+    assert "host.docker.internal" in config_source
+    assert "192\\.168" in config_source
+    assert "LOCAL_API_PORT" in config_source
+
+
 def test_logged_in_dashboard_exposes_custom_alias_and_random_generation():
     dashboard_path = Path(__file__).resolve().parent.parent / "frontend" / "src" / "pages" / "Dashboard.tsx"
     dashboard_source = dashboard_path.read_text()
@@ -37,13 +56,13 @@ def test_guest_dashboard_displays_link_limit_message():
     assert "Guest accounts can create up to 10 links. Sign in for unlimited links." in guest_dashboard_source
 
 
-def test_frontend_routes_render_without_global_boot_gate():
+def test_frontend_routes_render_with_api_boot_gate():
     app_path = Path(__file__).resolve().parent.parent / "frontend" / "src" / "App.tsx"
 
     app_source = app_path.read_text()
 
-    assert "BootLoadingScreen" not in app_source
-    assert "checkApiHealth" not in app_source
+    assert "BootLoadingScreen" in app_source
+    assert "checkApiHealth" in app_source
     assert "<Routes>" in app_source
 
 

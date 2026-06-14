@@ -159,3 +159,29 @@ def test_register_returns_429_after_rate_limit_exceeded(client: TestClient):
     assert [response.status_code for response in responses[:3]] == [200] * 3
     assert responses[3].status_code == 429
     assert responses[3].json() == {"detail": REGISTER_LIMIT_MESSAGE}
+
+
+def test_cors_allows_localhost_and_loopback_origins(client: TestClient):
+    response = client.options(
+        "/api/v1/auth/login",
+        headers={
+            "Origin": "http://127.0.0.1:5173",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+
+
+def test_cors_allows_private_network_origins_for_local_testing(client: TestClient):
+    response = client.options(
+        "/api/v1/auth/login",
+        headers={
+            "Origin": "http://192.168.1.25:5173",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://192.168.1.25:5173"
