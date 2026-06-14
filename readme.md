@@ -1,6 +1,6 @@
-# Shortlink
+# URL-Shortlink
 
-Shortlink is a full-stack URL shortener with authenticated link management, click analytics, expiration controls, and production deployments for both the frontend and backend.
+URL-Shortlink is a full-stack URL shortener with authenticated link management, click analytics, expiration controls, and production deployments for both the frontend and backend.
 
 ## Live Application
 
