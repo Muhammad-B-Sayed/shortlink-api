@@ -28,6 +28,7 @@ Shortlink uses a React frontend for the product UI and a FastAPI backend for aut
 
 - React 18
 - TypeScript
+- JavaScript
 - Vite
 - React Router
 - Tailwind CSS
