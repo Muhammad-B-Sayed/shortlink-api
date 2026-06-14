@@ -55,7 +55,7 @@ Shortlink uses a React frontend for the product UI, including a custom loading s
 - Alembic
 - Pydantic
 - `python-jose` for JWT authentication
-- `passlib` and bcrypt for password hashing
+- `passlib` and `bcrypt` for password hashing
 - `python-multipart` for OAuth2 form parsing
 - `slowapi` for rate limiting
 - Uvicorn
