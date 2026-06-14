@@ -34,7 +34,7 @@ Shortlink uses a React frontend for the product UI and a FastAPI backend for aut
 - PostCSS
 - Fetch API
 - Nginx for the containerized frontend
-- Vercel-style rewrite configuration plus a custom domain
+- Vercel plus a custom domain
 
 ### Backend
 
