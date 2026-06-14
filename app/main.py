@@ -25,6 +25,28 @@ CREATE_URL_LIMIT_MESSAGE = "Maximum URL creation attempts reached. Please try ag
 REDIRECT_LIMIT_MESSAGE = "Too many redirect requests. Please try again in a minute."
 URL_DATA_LIMIT_MESSAGE = "Too many URL data requests. Please try again in a minute."
 DEFAULT_LIMIT_MESSAGE = "Too many requests. Please try again in a minute."
+DEFAULT_CORS_ALLOWED_ORIGINS = ",".join(
+    [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://urlshortlink.xyz",
+        "https://www.urlshortlink.xyz",
+    ]
+)
+DEFAULT_LOCAL_ORIGIN_REGEX = (
+    r"^https?://("
+    r"localhost"
+    r"|127(?:\.\d{1,3}){3}"
+    r"|0\.0\.0\.0"
+    r"|\[::1\]"
+    r"|::1"
+    r"|host\.docker\.internal"
+    r"|(?:[A-Za-z0-9-]+\.)+local"
+    r"|10(?:\.\d{1,3}){3}"
+    r"|192\.168(?:\.\d{1,3}){2}"
+    r"|172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2}"
+    r")(?::\d+)?$"
+)
 
 
 @app.exception_handler(RateLimitExceeded)
@@ -52,18 +74,15 @@ NO_STORE_HEADERS = {
     "Expires": "0",
 }
 
-allowed_origins = [
-    origin.strip()
-    for origin in os.getenv(
-        "CORS_ALLOWED_ORIGINS",
-        "http://localhost:5173,https://urlshortlink.xyz,https://www.urlshortlink.xyz",
-    ).split(",")
-    if origin.strip()
-]
+allowed_origins = os.getenv(
+    "CORS_ALLOWED_ORIGINS",
+    DEFAULT_CORS_ALLOWED_ORIGINS,
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=[origin.strip() for origin in allowed_origins if origin.strip()],
+    allow_origin_regex=os.getenv("CORS_ALLOWED_ORIGIN_REGEX", DEFAULT_LOCAL_ORIGIN_REGEX),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

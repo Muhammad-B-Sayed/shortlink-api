@@ -4,7 +4,7 @@ URL-Shortlink is a full-stack URL shortener with guest link creation, authentica
 
 ## Live Application
 
-- Frontend: [https://urlshortlink.xyz](https://urlshortlink.xyz)
+- Frontend: [https://urlshortlink.xyz/dashboard](https://urlshortlink.xyz/dashboard)
 - Backend API: [https://shortlink-c8sm.onrender.com](https://shortlink-c8sm.onrender.com)
 - API docs: [https://shortlink-c8sm.onrender.com/docs](https://shortlink-c8sm.onrender.com/docs)
 
@@ -43,7 +43,7 @@ Shortlink uses a React frontend for the product UI, including a custom loading s
 - Tailwind CSS
 - PostCSS
 - Fetch API
-- Nginx 
+- Nginx
 - Vercel + Custom Domain
 
 ### Backend
@@ -120,7 +120,7 @@ Deployment:
 ## Repository Layout
 
 ```text
-url-shortlink/
+shortlink-api/
 ├── alembic/
 │   └── versions/
 ├── app/
@@ -190,22 +190,121 @@ In `/docs`:
 
 ## Environment Variables
 
-Use `.env.example` as the starting point.
+Use [.env.example](/Users/muhammad/Random_Projects/shortlink-api/.env.example) as the starting point.
 
-Backend variables:
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/shortlink_db
+SECRET_KEY=change-this-in-production
+PUBLIC_BASE_URL=http://localhost:5173
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://urlshortlink.xyz,https://www.urlshortlink.xyz
+```
+
+### Backend variables
 - `DATABASE_URL`: database connection string used by SQLAlchemy and Alembic
 - `SECRET_KEY`: signing key used for JWT creation and validation
 - `PUBLIC_BASE_URL`: base URL used when the API returns `short_url`
 - `CORS_ALLOWED_ORIGINS`: comma-separated frontend origins allowed to call the API
+- `CORS_ALLOWED_ORIGIN_REGEX`: optional regex for additional local-development origins such as LAN IPs and `.local` hostnames
 
-Frontend variables:
+### Frontend variables
 - `VITE_API_BASE_URL`: API base URL used by the frontend build
 
 The frontend also supports runtime injection through `frontend/public/runtime-config.js`, which is populated by `frontend/docker-entrypoint.sh` in container deployments.
 
 ## Local Development
 
-### Docker (Recommended)
+### Backend setup
+
+1. Create and activate a virtual environment:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+2. Install backend dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Create a local environment file:
+
+```bash
+cp -n .env.example .env
+```
+
+If `.env` already exists, do not overwrite it unless you intentionally want to replace your working local settings.
+
+4. Run database migrations:
+
+```bash
+alembic upgrade head
+```
+
+5. Start the backend:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Local backend URLs:
+
+- API: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+### Frontend setup
+
+1. Install frontend dependencies:
+
+```bash
+cd frontend
+npm ci
+```
+
+2. Point the frontend at the local API:
+
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Use `127.0.0.1:8000` for local development. The frontend now auto-detects common local hosts, including `localhost`, `127.0.0.1`, `.local` hostnames, and private-network IPs, and will keep those pointed at a local backend unless you override `VITE_API_BASE_URL`.
+
+3. Start the frontend:
+
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
+```
+
+Typical local frontend URL:
+
+- [http://localhost:5173](http://localhost:5173)
+
+### Recommended local startup flow
+
+Terminal 1, backend:
+
+```bash
+cd /Users/muhammad/Random_Projects/shortlink-api
+source venv/bin/activate
+./venv/bin/alembic upgrade head
+./venv/bin/uvicorn app.main:app --reload
+```
+
+Terminal 2, frontend:
+
+```bash
+cd /Users/muhammad/Random_Projects/shortlink-api/frontend
+npm ci
+VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
+```
+
+Then open:
+
+- frontend: [http://localhost:5173](http://localhost:5173)
+- backend docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+## Docker
 
 Run the full local stack with:
 
@@ -300,6 +399,7 @@ npm run build
 - The production frontend runs on [https://urlshortlink.xyz](https://urlshortlink.xyz).
 - The production backend runs on [https://shortlink-c8sm.onrender.com](https://shortlink-c8sm.onrender.com).
 - The application is deployed with Vercel for the frontend and Render for the backend.
+- The frontend defaults, runtime config, Docker config, and backend CORS settings are aligned to the current production URLs.
 
 ## Authors
 
