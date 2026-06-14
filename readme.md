@@ -43,8 +43,8 @@ Shortlink uses a React frontend for the product UI, including a custom loading s
 - Tailwind CSS
 - PostCSS
 - Fetch API
-- Nginx for the containerized frontend
-- Vercel plus a custom domain
+- Nginx 
+- Vercel + Custom Domain
 
 ### Backend
 
