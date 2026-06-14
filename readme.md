@@ -1,26 +1,35 @@
 # URL-Shortlink
 
-URL-Shortlink is a full-stack URL shortener with authenticated link management, click analytics, expiration controls, and production deployments for both the frontend and backend.
+URL-Shortlink is a full-stack URL shortener with guest link creation, authenticated link management, click analytics, expiration controls, and production deployments for both the frontend and backend.
 
 ## Live Application
 
-- Frontend: [https://urlshortlink.xyz/dashboard](https://urlshortlink.xyz/dashboard)
+- Frontend: [https://urlshortlink.xyz](https://urlshortlink.xyz)
 - Backend API: [https://shortlink-c8sm.onrender.com](https://shortlink-c8sm.onrender.com)
 - API docs: [https://shortlink-c8sm.onrender.com/docs](https://shortlink-c8sm.onrender.com/docs)
 
 ## Overview
 
-Authenticated users can:
-
-- register and log in
+Guest users can:
+- create shortened URLs without signing in
 - create shortened URLs with auto-generated short codes
-- set optional expiration dates
-- view all links they own
-- activate or deactivate links
-- delete links
+- view and manage links stored locally in the browser through a guest dashboard
 - inspect per-link analytics, including total clicks and last click time
+- create up to 10 guest links with automatic expirations set to 7 days
 
-Shortlink uses a React frontend for the product UI and a FastAPI backend for authentication, URL management, redirect handling, analytics, and persistence.
+Authenticated users can additionally:
+- register for an account
+- log in securely with their email and password
+- stay authenticated using JWT-based bearer tokens
+- create custom short codes when available
+- generate random short codes automatically
+- set optional expiration dates, including no expiration
+- update link expiration dates after creation
+- activate or deactivate links
+- keep links tied to their account instead of only storing them in the browser
+- create unlimited links
+
+Shortlink uses a React frontend for the product UI, including a custom loading screen for backend cold starts, guest link creation, authenticated dashboards, custom short code support, random short code generation, and analytics visualizations. FastAPI is used for authentication, URL management, redirect handling, analytics, and persistence.
 
 ## Stack
 
@@ -45,11 +54,12 @@ Shortlink uses a React frontend for the product UI and a FastAPI backend for aut
 - PostgreSQL
 - Alembic
 - Pydantic
-- `python-jose` for JWT auth
-- `passlib` for password hashing
+- `python-jose` for JWT authentication
+- `passlib` and bcrypt for password hashing
 - `python-multipart` for OAuth2 form parsing
 - `slowapi` for rate limiting
 - Uvicorn
+- CORS middleware
 
 ### Infrastructure
 
@@ -63,10 +73,43 @@ Shortlink uses a React frontend for the product UI and a FastAPI backend for aut
 - FastAPI `TestClient`
 - httpx
 
+## Current Features
+
+Authentication:
+- user registration
+- login with JWT
+- protected dashboard routes
+- current-user lookup
+
+URL management:
+- random short code generation
+- optional custom aliases for authenticated users
+- guest link creation
+- guest link limit
+- expiration dates
+- activation and deactivation
+- deletion
+
+Analytics:
+- total clicks
+- last clicked time
+- redirect tracking
+- analytics visualizations
+- duplicate/speculative request filtering
+
+Deployment:
+- frontend deployed on Vercel with a custom domain
+- backend deployed on Render
+- production CORS configuration
+- Docker and Docker Compose support
+
 ## Product Behavior
 
-- Short codes are generated automatically.
-- Custom aliases are not part of the current product.
+- Guest users create links with automatically generated short codes.
+- Authenticated users can optionally create custom short codes or generate random short codes automatically.
+- Guest users can create up to 10 links, while signed-in users can create unlimited links.
+- Guest links automatically expire after 7 days.
+- Authenticated users can set optional expiration dates, including no expiration.
 - Redirects respect both activation status and expiration.
 - Expired links return `410 Gone`.
 - Missing links return `404 Not Found`.
@@ -77,7 +120,7 @@ Shortlink uses a React frontend for the product UI and a FastAPI backend for aut
 ## Repository Layout
 
 ```text
-shortlink-api/
+url-shortlink/
 ├── alembic/
 │   └── versions/
 ├── app/
@@ -135,7 +178,9 @@ shortlink-api/
 
 The backend uses JWT bearer tokens.
 
-Swagger is configured with OAuth2 password flow. In `/docs`:
+Swagger is configured with OAuth2 password flow.
+
+In `/docs`:
 
 1. Register a user.
 2. Click `Authorize`.
@@ -145,122 +190,22 @@ Swagger is configured with OAuth2 password flow. In `/docs`:
 
 ## Environment Variables
 
-Use [.env.example](/Users/muhammad/Random_Projects/shortlink-api/.env.example) as the starting point.
+Use `.env.example` as the starting point.
 
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/shortlink_db
-SECRET_KEY=change-this-in-production
-PUBLIC_BASE_URL=http://localhost:5173
-CORS_ALLOWED_ORIGINS=http://localhost:5173,https://urlshortlink.xyz,https://www.urlshortlink.xyz
-```
-
-### Backend variables
-
+Backend variables:
 - `DATABASE_URL`: database connection string used by SQLAlchemy and Alembic
-- `SECRET_KEY`: signing key for JWT creation and validation
+- `SECRET_KEY`: signing key used for JWT creation and validation
 - `PUBLIC_BASE_URL`: base URL used when the API returns `short_url`
 - `CORS_ALLOWED_ORIGINS`: comma-separated frontend origins allowed to call the API
 
-### Frontend variables
-
+Frontend variables:
 - `VITE_API_BASE_URL`: API base URL used by the frontend build
 
 The frontend also supports runtime injection through `frontend/public/runtime-config.js`, which is populated by `frontend/docker-entrypoint.sh` in container deployments.
 
 ## Local Development
 
-### Backend setup
-
-1. Create and activate a virtual environment:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-2. Install backend dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Create a local environment file:
-
-```bash
-cp -n .env.example .env
-```
-
-If `.env` already exists, do not overwrite it unless you intentionally want to replace your working local settings.
-
-4. Run database migrations:
-
-```bash
-alembic upgrade head
-```
-
-5. Start the backend:
-
-```bash
-uvicorn app.main:app --reload
-```
-
-Local backend URLs:
-
-- API: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-
-### Frontend setup
-
-1. Install frontend dependencies:
-
-```bash
-cd frontend
-npm ci
-```
-
-2. Point the frontend at the local API:
-
-```bash
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-Use `127.0.0.1:8000` for local development. The repo also contains production runtime config for deployed environments, so setting `VITE_API_BASE_URL` explicitly keeps the local frontend pointed at your local backend.
-
-3. Start the frontend:
-
-```bash
-VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
-```
-
-Typical local frontend URL:
-
-- [http://localhost:5173](http://localhost:5173)
-
-### Recommended local startup flow
-
-Terminal 1, backend:
-
-```bash
-cd /Users/muhammad/Random_Projects/shortlink-api
-source venv/bin/activate
-./venv/bin/alembic upgrade head
-./venv/bin/uvicorn app.main:app --reload
-```
-
-Terminal 2, frontend:
-
-```bash
-cd /Users/muhammad/Random_Projects/shortlink-api/frontend
-npm ci
-VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
-```
-
-Then open:
-
-- frontend: [http://localhost:5173](http://localhost:5173)
-- backend docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-
-## Docker
+### Docker (Recommended)
 
 Run the full local stack with:
 
@@ -271,16 +216,37 @@ docker compose up --build
 This starts:
 
 - PostgreSQL
-- the FastAPI backend
-- the frontend served through Nginx
+- FastAPI backend
+- React frontend served through Nginx
 
 Default local ports:
 
-- frontend: `5173`
-- backend: `8000`
+- Frontend: `5173`
+- Backend: `8000`
 - PostgreSQL: `5433`
 
-The backend containers run `alembic upgrade head` before starting Uvicorn.
+The backend containers automatically run `alembic upgrade head` before starting Uvicorn.
+
+### Manual Development Setup (Optional)
+
+#### Backend
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp -n .env.example .env
+alembic upgrade head
+uvicorn app.main:app --reload
+```
+
+#### Frontend
+
+```bash
+cd frontend
+npm ci
+VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
+```
 
 ## Migrations
 
@@ -313,13 +279,13 @@ alembic stamp head
 Run all backend tests:
 
 ```bash
-./venv/bin/python -m pytest -q
+python -m pytest -q
 ```
 
 Run the URL-focused suite:
 
 ```bash
-./venv/bin/python -m pytest -v tests/test_urls.py
+python -m pytest -v tests/test_urls.py
 ```
 
 Run the frontend production build check:
@@ -329,21 +295,11 @@ cd frontend
 npm run build
 ```
 
-## Helper Scripts
-
-The `scripts/` folder includes local convenience scripts such as:
-
-- `scripts/start_dev.sh`
-- `scripts/reset_docker.sh`
-- `scripts/run_tests.sh`
-
-`scripts/run_tests.sh` supports both Unix-style and Windows-style virtual environment layouts.
-
 ## Deployment Notes
 
 - The production frontend runs on [https://urlshortlink.xyz](https://urlshortlink.xyz).
 - The production backend runs on [https://shortlink-c8sm.onrender.com](https://shortlink-c8sm.onrender.com).
-- The frontend defaults, runtime config, Docker config, and backend CORS settings are aligned to the current production URLs.
+- The application is deployed with Vercel for the frontend and Render for the backend.
 
 ## Authors
 
