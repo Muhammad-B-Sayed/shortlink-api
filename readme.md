@@ -1,4 +1,5 @@
 # [URL-Shortlink](https://urlshortlink.xyz)
+<img width="1410" height="1206" alt="image" src="https://github.com/user-attachments/assets/d64534fa-de22-4549-aef0-49d78503ec39" />
 
 URL-Shortlink is a full-stack URL shortener with guest link creation, authenticated link management, click analytics, expiration controls, and production deployments for both the frontend and backend.
 
