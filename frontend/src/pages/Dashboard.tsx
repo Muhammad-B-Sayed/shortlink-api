@@ -43,13 +43,6 @@ function toDateTimeLocalInput(value: string | null) {
   ].join("");
 }
 
-function generateClientShortCode(length = 5) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const values = new Uint32Array(length);
-  window.crypto.getRandomValues(values);
-  return Array.from(values, (value) => chars[value % chars.length]).join("");
-}
-
 function UrlSkeleton() {
   return (
     <div className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200">
@@ -253,12 +246,6 @@ export function Dashboard() {
     }
   };
 
-  const handleGenerateRandomAlias = () => {
-    setCustomAlias(generateClientShortCode());
-    setCreateError(null);
-    setRowMessage(null);
-  };
-
   const handleUpdate = async (shortCode: string, nextValue?: string) => {
     if (!token) {
       return;
@@ -446,9 +433,6 @@ export function Dashboard() {
             </div>
 
             <div className="mt-auto flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
-              <button type="button" onClick={handleGenerateRandomAlias} className="btn-secondary">
-                Generate random
-              </button>
               <button type="submit" disabled={isCreating} className="btn-accent sm:min-w-28">
                 {isCreating ? "Creating..." : "Create"}
               </button>
